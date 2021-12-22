@@ -4,7 +4,7 @@ import pickle
 from datetime import datetime
 
 #Opening file with watch history data - JSON
-f = open('zgodovina_ogledov.json', encoding ="cp850")
+f = open('watch-history.json', encoding ="cp850")
  
 #Converting JSON file format to a Python dictionary
 data = json.load(f)
@@ -21,15 +21,19 @@ prevAuth = ""
 streakAuth = ""
 streakCount = 0
 i = 0
+firstVideo = ""
+lastVideoAdded = ""
 
 #Loop that creates dictionaries with author names as keys and num. of watched videos as value
 for video in data:
+    
     if "titleUrl" in video:
 
         # Getting the video author from noembed API
         vidUrl = video["titleUrl"]
         result = requests.get("https://noembed.com/embed?url= {}".format(vidUrl))
         result = json.loads(result.text)
+        lastVideoAdded = vidUrl
         
         if "error" in result or not result["author_name"]:
             print("noAuth")
@@ -98,6 +102,7 @@ for video in data:
                 else:
                     if longestChannelStreak[videoAuthor] < streakCount:
                         longestChannelStreak[videoAuthor] = streakCount
+                    streakCount = 0
 
 
 
@@ -109,15 +114,19 @@ for video in data:
 
         i=i+1
 
+    if time.year != datetime.now().year:
+            firstVideo = lastVideoAdded
+            break
+
+    print(i)
+
         
     
     
     
-    if i >= 29100:
+    
 
-        break
-
-    print(i)
+ 
     
 
 
@@ -154,5 +163,9 @@ dictFile  = open("historyData_channelStreak.pkl", "wb")
 pickle.dump(longestChannelStreak, dictFile)
 dictFile.close()
 
+dictFile  = open("historyData_mostWatchedVideo.pkl", "wb")
+pickle.dump(mostWatchedVideo, dictFile)
+dictFile.close()
 
-
+print("Number Of Videos Watched: ", i)
+print("First Video You've Watched This Year: ", lastVideoAdded)
