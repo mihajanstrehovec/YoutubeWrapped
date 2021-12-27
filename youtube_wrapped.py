@@ -2,9 +2,9 @@ import requests
 import json
 from datetime import datetime
 import csv
+import pickle
 
-
-#Opening file with watch history data - needs to be a JSON
+#Opening file with watch history data - needs to be a JSON, change file name to your history JSON file
 f = open('zgodovina_ogledov.json', encoding ="cp850")
  
 #Converting JSON file format to a Python dictionary
@@ -34,17 +34,16 @@ mostLikedChannel = {}
 
 #print(liked_videos)
 #liked_videos = csv.DictReader(open('Liked videos.csv'))
+print("Processing liked video data")
 for i,video in enumerate(liked_videos[2:]):
-    print("hmmmmmmmmmmmmmmmmmmmmmmm")
+   
     if lvKey in video:
         # Getting the video author from noembed API
         vidUrl = video[lvKey]
-        print(vidUrl)
         result = requests.get("https://noembed.com/embed?url=https://www.youtube.com/watch?v={}".format(vidUrl))
         result = json.loads(result.text)
 
         date = datetime.strptime(video[lvKey2], "%Y-%m-%d %H:%M:%S UTC")
-        print(video[lvKey2])
 
         if "error" in result or not result["author_name"]:
             print("noAuth")
@@ -59,16 +58,24 @@ for i,video in enumerate(liked_videos[2:]):
             else:
                 mostLikedChannel[videoAuthor] = 1
 
-            print(videoAuthor)
+            
      
-    if date.year < 21:
+    if date.year < 2021:
         break 
     
-    print("liked")
+  
 
 
     likecount = i
-    print(likecount)
+    print(i)
+    
+
+
+# Saving data dictionaries to files for later use
+dictFile  = open("mostLikedChannel.pkl", "wb")
+pickle.dump(mostLikedChannel, dictFile)
+dictFile.close()
+
 
 # Initializing all the dictionaries
 mostWatchedChannel = {}
@@ -85,7 +92,9 @@ i = 0
 firstVideo = ""
 lastVideoAdded = ""
 
+
 #Loop that creates dictionaries with author names as keys and num. of watched videos as value
+print("Processing history data")
 for i, video in enumerate(data):
     
     if "titleUrl" in video:
@@ -109,7 +118,7 @@ for i, video in enumerate(data):
             else:
                 mostWatchedChannel[videoAuthor] = 1
 
-            print(videoAuthor)
+            
 
             # Counting most watched video 
             if vidUrl in mostWatchedVideo:
@@ -120,7 +129,7 @@ for i, video in enumerate(data):
             # Sorting video by time of day | MORNING/DAY/EVENING/NIGHT
             if "time" in video:
                 
-                # Removing unnecessary characters (T and Z)
+                # Removing unnecessary characters (T and Z) from date format 2021-12-03T09:44:14.018Z
                 if "." in video["time"]:
                     date_time = video["time"].replace("T", " ").split(".", 1)
                 else:
@@ -173,6 +182,8 @@ for i, video in enumerate(data):
             break
 
     print(i)
+
+
 
         
     
@@ -241,13 +252,6 @@ print("While everybody else was sleeping \n")
 print(nightOwl, "\n\n\n")
 
 print("And you've watched a total of ", i+1, " videos. And out of those ", i, " videos you've pressed the like button on: ", likecount, " of them!")
-
-
-# print(sorted(mostLikedChannel.items(), key =
-#              lambda kv:(kv[1], kv[0])))
-
-
-
 
 
  
